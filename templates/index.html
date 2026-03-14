@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeriPlate AI – Vehicle Verification System | Telangana</title>
+    <meta name="description"
+        content="AI-powered vehicle classification and number plate verification for Telangana State using deep learning and OCR.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --p: #6366f1;
+            --pl: #818cf8;
+            --pd: #4f46e5;
+            --ac: #06b6d4;
+            --acl: #22d3ee;
+            --vi: #a855f7;
+            --ok: #10b981;
+            --er: #ef4444;
+            --bg: #f0f4ff;
+            --sur: #ffffff;
+            --sur2: #f8faff;
+            --bd: rgba(99, 102, 241, 0.15);
+            --tx: #1e1b4b;
+            --txm: #6b7280;
+            --sh: 0 8px 40px rgba(99, 102, 241, 0.12);
+            --shl: 0 20px 60px rgba(99, 102, 241, 0.20);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg);
+            font-family: 'Inter', sans-serif;
+            color: var(--tx);
+            overflow-x: hidden;
+        }
+
+        /* ── NAV ── */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.88);
+            border-bottom: 1px solid var(--bd);
+            padding: 12px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--pd);
+            text-decoration: none;
+        }
+
+        .brand-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--p), var(--ac));
+            animation: pls 2s ease-in-out infinite;
+        }
+
+        @keyframes pls {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.6);
+                opacity: .6;
+            }
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--txm);
+            text-decoration: none;
+            font-size: .88rem;
+            font-weight: 500;
+            transition: color .2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--p);
+        }
+
+        .nav-cta {
+            background: linear-gradient(135deg, var(--p), var(--ac));
+            color: #fff;
+            border: none;
+            padding: 9px 22px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: .85rem;
+            cursor: pointer;
+            transition: all .25s;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
+        }
+
+        /* ── BG BLOBS ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 15% -5%, rgba(99, 102, 241, 0.14) 0%, transparent 55%),
+                radial-gradient(ellipse 60% 50% at 85% 110%, rgba(6, 182, 212, 0.11) 0%, transparent 55%),
+                radial-gradient(ellipse 40% 40% at 55% 50%, rgba(168, 85, 247, 0.06) 0%, transparent 50%);
+        }
+
+        section,
+        footer {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── HERO ── */
+        .hero {
+            padding: 100px 0 80px;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            color: var(--p);
+            font-size: .72rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 6px 18px;
+            border-radius: 20px;
+            margin-bottom: 24px;
+        }
+
+        .hero h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2.2rem, 5.5vw, 3.8rem);
+            font-weight: 800;
+            line-height: 1.12;
+            color: var(--tx);
+            margin-bottom: 22px;
+        }
+
+        .hero h1 .grad {
+            background: linear-gradient(135deg, var(--p), var(--ac));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            color: var(--txm);
+            font-size: 1.1rem;
+            max-width: 580px;
+            margin: 0 auto 36px;
+            line-height: 1.7;
+        }
+
+        .hero-btns {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-hero-p {
+            background: linear-gradient(135deg, var(--p), var(--ac));
+            color: #fff;
+            border: none;
+            padding: 14px 36px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: .95rem;
+            cursor: pointer;
+            transition: all .3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-hero-p:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 28px rgba(99, 102, 241, .38);
+            color: #fff;
+        }
+
+        .btn-hero-s {
+            background: transparent;
+            border: 2px solid var(--bd);
+            color: var(--tx);
+            padding: 13px 34px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: .95rem;
+            cursor: pointer;
+            transition: all .3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-hero-s:hover {
+            border-color: var(--p);
+            color: var(--p);
+        }
+
+        /* stats row */
+        .stat-row {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 60px;
+        }
+
+        .stat-chip {
+            background: var(--sur);
+            border: 1px solid var(--bd);
+            border-radius: 14px;
+            padding: 16px 24px;
+            box-shadow: var(--sh);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: transform .2s, box-shadow .2s;
+        }
+
+        .stat-chip:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shl);
+        }
+
+        .sc-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .sc-icon.ind {
+            background: rgba(99, 102, 241, 0.12);
+            color: var(--p);
+        }
+
+        .sc-icon.cyn {
+            background: rgba(6, 182, 212, 0.12);
+            color: var(--ac);
+        }
+
+        .sc-icon.vio {
+            background: rgba(168, 85, 247, 0.12);
+            color: var(--vi);
+        }
+
+        .sc-icon.grn {
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--ok);
+        }
+
+        .sc-label {
+            font-size: .68rem;
+            color: var(--txm);
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .sc-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--tx);
+        }
+
+        /* ── SECTION COMMON ── */
+        .sec-pad {
+            padding: 90px 0;
+        }
+
+        .sec-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(99, 102, 241, .08);
+            border: 1px solid rgba(99, 102, 241, .2);
+            color: var(--p);
+            font-size: .7rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+        }
+
+        .sec-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(1.7rem, 3.5vw, 2.4rem);
+            font-weight: 800;
+            color: var(--tx);
+            margin-bottom: 14px;
+        }
+
+        .sec-sub {
+            color: var(--txm);
+            font-size: 1rem;
+            line-height: 1.7;
+            max-width: 560px;
+        }
+
+        .divider {
+            height: 3px;
+            width: 50px;
+            background: linear-gradient(90deg, var(--p), var(--ac));
+            border-radius: 3px;
+            margin: 18px 0;
+        }
+
+        /* ── WHAT IT DOES ── */
+        .feat-bg {
+            background: var(--sur);
+        }
+
+        .feat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+            margin-top: 48px;
+        }
+
+        .feat-card {
+            background: var(--sur2);
+            border: 1px solid var(--bd);
+            border-radius: 20px;
+            padding: 32px 28px;
+            transition: all .3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--p), var(--ac));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform .35s;
+        }
+
+        .feat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feat-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shl);
+        }
+
+        .feat-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+        }
+
+        .fi-1 {
+            background: linear-gradient(135deg, rgba(99, 102, 241, .15), rgba(99, 102, 241, .05));
+            color: var(--p);
+        }
+
+        .fi-2 {
+            background: linear-gradient(135deg, rgba(6, 182, 212, .15), rgba(6, 182, 212, .05));
+            color: var(--ac);
+        }
+
+        .fi-3 {
+            background: linear-gradient(135deg, rgba(16, 185, 129, .15), rgba(16, 185, 129, .05));
+            color: var(--ok);
+        }
+
+        .fi-4 {
+            background: linear-gradient(135deg, rgba(168, 85, 247, .15), rgba(168, 85, 247, .05));
+            color: var(--vi);
+        }
+
+        .feat-card h4 {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--tx);
+            margin-bottom: 10px;
+        }
+
+        .feat-card p {
+            color: var(--txm);
+            font-size: .88rem;
+            line-height: 1.65;
+        }
+
+        /* ── HOW IT WORKS ── */
+        .steps-wrap {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 0;
+            margin-top: 56px;
+            position: relative;
+        }
+
+        .steps-wrap::before {
+            content: '';
+            position: absolute;
+            top: 36px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--p), var(--ac), var(--vi));
+            opacity: .25;
+            z-index: 0;
+        }
+
+        .step {
+            text-align: center;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-num {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--p), var(--ac));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #fff;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 24px rgba(99, 102, 241, .3);
+        }
+
+        .step-num.s2 {
+            background: linear-gradient(135deg, var(--ac), var(--vi));
+        }
+
+        .step-num.s3 {
+            background: linear-gradient(135deg, var(--vi), var(--p));
+        }
+
+        .step-num.s4 {
+            background: linear-gradient(135deg, var(--ok), var(--ac));
+        }
+
+        .step h5 {
+            font-weight: 700;
+            color: var(--tx);
+            margin-bottom: 8px;
+        }
+
+        .step p {
+            color: var(--txm);
+            font-size: .85rem;
+            line-height: 1.6;
+        }
+
+        /* ── TECH ── */
+        .tech-bg {
+            background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+            color: #fff;
+        }
+
+        .tech-bg .sec-title {
+            color: #fff;
+        }
+
+        .tech-bg .sec-sub {
+            color: rgba(255, 255, 255, .6);
+        }
+
+        .tech-bg .sec-badge {
+            background: rgba(255, 255, 255, .08);
+            border-color: rgba(255, 255, 255, .2);
+            color: var(--pl);
+        }
+
+        .tech-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-top: 48px;
+        }
+
+        .tech-card {
+            background: rgba(255, 255, 255, .06);
+            border: 1px solid rgba(255, 255, 255, .1);
+            border-radius: 16px;
+            padding: 24px 20px;
+            text-align: center;
+            transition: all .3s;
+        }
+
+        .tech-card:hover {
+            background: rgba(255, 255, 255, .1);
+            transform: translateY(-4px);
+        }
+
+        .tech-card .t-icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+
+        .tech-card h5 {
+            font-size: .9rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+
+        .tech-card p {
+            font-size: .75rem;
+            color: rgba(255, 255, 255, .5);
+        }
+
+        /* ── ACCURACY BANNER ── */
+        .accuracy-banner {
+            background: linear-gradient(135deg, var(--p), var(--ac));
+            border-radius: 24px;
+            padding: 48px 40px;
+            color: #fff;
+            text-align: center;
+            margin: 64px 0;
+        }
+
+        .accuracy-banner h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .accuracy-banner p {
+            opacity: .85;
+            font-size: 1rem;
+            max-width: 460px;
+            margin: 0 auto;
+        }
+
+        .acc-nums {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            margin-top: 36px;
+            flex-wrap: wrap;
+        }
+
+        .acc-item .big {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 800;
+        }
+
+        .acc-item .lbl {
+            font-size: .78rem;
+            opacity: .7;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* ── UPLOAD SECTION ── */
+        .upload-sec {
+            background: var(--sur);
+        }
+
+        .upload-wrap {
+            background: var(--sur);
+            border: 1px solid var(--bd);
+            border-radius: 24px;
+            box-shadow: var(--shl);
+            overflow: hidden;
+            max-width: 720px;
+            margin: 48px auto 0;
+        }
+
+        .uw-head {
+            background: linear-gradient(135deg, var(--pd), var(--p), var(--ac));
+            padding: 22px 28px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .uw-head h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #fff;
+            margin: 0;
+        }
+
+        .uw-body {
+            padding: 32px;
+        }
+
+        /* drop zone */
+        .drop-zone {
+            border: 2.5px dashed rgba(99, 102, 241, .3);
+            border-radius: 16px;
+            padding: 48px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all .3s;
+            background: rgba(99, 102, 241, .02);
+            position: relative;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.drag {
+            border-color: var(--p);
+            background: rgba(99, 102, 241, .06);
+        }
+
+        .drop-zone input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .dz-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--p), var(--ac));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #fff;
+            margin: 0 auto 16px;
+            box-shadow: 0 6px 20px rgba(99, 102, 241, .3);
+        }
+
+        .drop-zone h4 {
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .drop-zone p {
+            color: var(--txm);
+            font-size: .85rem;
+        }
+
+        .fmt-tags {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+
+        .fmt {
+            background: rgba(99, 102, 241, .08);
+            color: var(--p);
+            font-size: .68rem;
+            font-weight: 700;
+            padding: 4px 11px;
+            border-radius: 6px;
+        }
+
+        .file-name {
+            text-align: center;
+            margin-top: 12px;
+            font-weight: 600;
+            color: var(--p);
+            display: none;
+        }
+
+        /* preview */
+        .preview-sec {
+            text-align: center;
+            margin: 24px 0;
+            display: none;
+        }
+
+        .preview-wrap {
+            display: inline-block;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shl);
+            position: relative;
+        }
+
+        .preview-wrap img {
+            max-height: 340px;
+            max-width: 100%;
+            display: block;
+            border-radius: 16px;
+        }
+
+        .scan-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--ac), transparent);
+            animation: scan 2.2s linear infinite;
+            display: none;
+        }
+
+        @keyframes scan {
+            0% {
+                top: 0;
+            }
+
+            100% {
+                top: 100%;
+            }
+        }
+
+        .preview-wrap.scanning .scan-line {
+            display: block;
+        }
+
+        .corner {
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            border-color: var(--p);
+            border-style: solid;
+            transition: border-color .4s;
+        }
+
+        .corner.tl {
+            top: 8px;
+            left: 8px;
+            border-width: 3px 0 0 3px;
+            border-radius: 4px 0 0 0;
+        }
+
+        .corner.tr {
+            top: 8px;
+            right: 8px;
+            border-width: 3px 3px 0 0;
+            border-radius: 0 4px 0 0;
+        }
+
+        .corner.bl {
+            bottom: 8px;
+            left: 8px;
+            border-width: 0 0 3px 3px;
+            border-radius: 0 0 0 4px;
+        }
+
+        .corner.br {
+            bottom: 8px;
+            right: 8px;
+            border-width: 0 3px 3px 0;
+            border-radius: 0 0 4px 0;
+        }
+
+        .preview-wrap.ok .corner {
+            border-color: var(--ok);
+        }
+
+        .preview-wrap.fail .corner {
+            border-color: var(--er);
+        }
+
+        /* btn upload */
+        .btn-upload {
+            background: linear-gradient(135deg, var(--p), var(--ac));
+            color: #fff;
+            border: none;
+            padding: 14px 44px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: .95rem;
+            cursor: pointer;
+            transition: all .3s;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn-upload:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, .38);
+        }
+
+        /* action grid */
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .btn-act {
+            border: none;
+            border-radius: 14px;
+            padding: 20px 16px;
+            font-weight: 700;
+            font-size: .85rem;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            transition: all .3s;
+            color: #fff;
+        }
+
+        .btn-act:hover {
+            transform: translateY(-4px);
+        }
+
+        .act-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, .2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .btn-cls {
+            background: linear-gradient(135deg, var(--pd), var(--pl));
+            box-shadow: 0 6px 20px rgba(99, 102, 241, .3);
+        }
+
+        .btn-cls:hover {
+            box-shadow: 0 12px 30px rgba(99, 102, 241, .45);
+        }
+
+        .btn-plt {
+            background: linear-gradient(135deg, #0891b2, var(--acl));
+            box-shadow: 0 6px 20px rgba(6, 182, 212, .3);
+        }
+
+        .btn-plt:hover {
+            box-shadow: 0 12px 30px rgba(6, 182, 212, .45);
+        }
+
+        /* result */
+        #result .r-card {
+            animation: popIn .4s cubic-bezier(.34, 1.56, .64, 1) both;
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(.93) translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .r-head {
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .plate-disp {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 8px;
+            padding: 16px 32px;
+            border-radius: 12px;
+            display: inline-block;
+            margin: 14px 0;
+        }
+
+        .pd-neu {
+            background: rgba(99, 102, 241, .08);
+            color: var(--p);
+            border: 2px solid rgba(99, 102, 241, .3);
+        }
+
+        .pd-ok {
+            background: rgba(16, 185, 129, .08);
+            color: var(--ok);
+            border: 2px solid rgba(16, 185, 129, .35);
+        }
+
+        .pd-er {
+            background: rgba(239, 68, 68, .08);
+            color: var(--er);
+            border: 2px solid rgba(239, 68, 68, .35);
+        }
+
+        .spill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 20px;
+            border-radius: 24px;
+            font-weight: 700;
+            font-size: .82rem;
+        }
+
+        .sp-ok {
+            background: rgba(16, 185, 129, .1);
+            color: var(--ok);
+            border: 1.5px solid rgba(16, 185, 129, .35);
+        }
+
+        .sp-er {
+            background: rgba(239, 68, 68, .1);
+            color: var(--er);
+            border: 1.5px solid rgba(239, 68, 68, .35);
+        }
+
+        .sp-wn {
+            background: rgba(245, 158, 11, .1);
+            color: #d97706;
+            border: 1.5px solid rgba(245, 158, 11, .35);
+        }
+
+        .info-tbl {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+        }
+
+        .info-tbl td {
+            padding: 11px 16px;
+            background: var(--sur2);
+            border: 1px solid var(--bd);
+        }
+
+        .info-tbl td:first-child {
+            border-radius: 10px 0 0 10px;
+            font-weight: 600;
+            color: var(--txm);
+            font-size: .78rem;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            width: 36%;
+            border-right: none;
+        }
+
+        .info-tbl td:last-child {
+            border-radius: 0 10px 10px 0;
+            font-weight: 600;
+            color: var(--tx);
+            border-left: none;
+        }
+
+        .conf-track {
+            height: 8px;
+            background: rgba(99, 102, 241, .1);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .conf-fill {
+            height: 100%;
+            border-radius: 8px;
+            background: linear-gradient(90deg, var(--p), var(--ac));
+            transition: width 1s ease;
+        }
+
+        .ring {
+            display: inline-block;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            border: 5px solid rgba(99, 102, 241, .12);
+            border-top-color: var(--p);
+            animation: spin .7s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .alert-m {
+            border-radius: 12px;
+            padding: 14px 18px;
+            font-weight: 500;
+            border: 1.5px solid;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .am-info {
+            background: rgba(99, 102, 241, .06);
+            border-color: rgba(99, 102, 241, .25);
+            color: var(--pd);
+        }
+
+        .am-ok {
+            background: rgba(16, 185, 129, .06);
+            border-color: rgba(16, 185, 129, .3);
+            color: #065f46;
+        }
+
+        .am-er {
+            background: rgba(239, 68, 68, .06);
+            border-color: rgba(239, 68, 68, .3);
+            color: #991b1b;
+        }
+
+        /* toast */
+        .toast-fix {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            background: var(--p);
+            color: #fff;
+            padding: 14px 22px;
+            border-radius: 12px;
+            font-weight: 600;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .18);
+            animation: popIn .35s ease;
+        }
+
+        /* footer */
+        footer {
+            background: #1e1b4b;
+            color: rgba(255, 255, 255, .55);
+            text-align: center;
+            padding: 40px 20px;
+            font-size: .82rem;
+        }
+
+        footer strong {
+            color: rgba(255, 255, 255, .8);
+        }
+
+        footer a {
+            color: var(--pl);
+            text-decoration: none;
+        }
+
+        /* responsive */
+        @media(max-width:640px) {
+            .action-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .acc-nums {
+                gap: 28px;
+            }
+
+            .steps-wrap::before {
+                display: none;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .plate-disp {
+                font-size: 1.3rem;
+                letter-spacing: 4px;
+                padding: 12px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAV -->
+    <nav>
+        <a class="nav-brand" href="#">
+            <div class="brand-dot"></div> VeriPlate AI
+        </a>
+        <ul class="nav-links">
+            <li><a href="#about">About</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#how">How It Works</a></li>
+            <li><a href="#tech">Technology</a></li>
+            <li><a href="#tool">Try It</a></li>
+        </ul>
+        <button class="nav-cta" onclick="document.getElementById('tool').scrollIntoView({behavior:'smooth'})">
+            Try Now →
+        </button>
+    </nav>
+
+    <!-- ══ HERO ══ -->
+    <section class="hero" id="about">
+        <div class="container">
+            <div class="hero-badge"><i class="fas fa-shield-halved"></i> Telangana Vehicle Intelligence</div>
+            <h1>AI-Powered Vehicle<br><span class="grad">Verification System</span></h1>
+            <p>Upload any vehicle photo and our system instantly classifies it and cross-checks its number plate against
+                Telangana's live registration database — in seconds.</p>
+            <div class="hero-btns">
+                <a href="#tool" class="btn-hero-p"><i class="fas fa-rocket"></i> Try the Tool</a>
+                <a href="#how" class="btn-hero-s"><i class="fas fa-play-circle"></i> See How It Works</a>
+            </div>
+
+            <div class="stat-row">
+                <div class="stat-chip">
+                    <div class="sc-icon ind"><i class="fas fa-brain"></i></div>
+                    <div>
+                        <div class="sc-label">AI Engine</div>
+                        <div class="sc-value">Deep CNN</div>
+                    </div>
+                </div>
+                <div class="stat-chip">
+                    <div class="sc-icon cyn"><i class="fas fa-database"></i></div>
+                    <div>
+                        <div class="sc-label">DB Records</div>
+                        <div class="sc-value" id="dbCount">Loading…</div>
+                    </div>
+                </div>
+                <div class="stat-chip">
+                    <div class="sc-icon vio"><i class="fas fa-eye"></i></div>
+                    <div>
+                        <div class="sc-label">OCR Engine</div>
+                        <div class="sc-value">EasyOCR</div>
+                    </div>
+                </div>
+                <div class="stat-chip">
+                    <div class="sc-icon grn"><i class="fas fa-bolt"></i></div>
+                    <div>
+                        <div class="sc-label">Detection</div>
+                        <div class="sc-value">Real-time</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ FEATURES ══ -->
+    <section class="sec-pad feat-bg" id="features">
+        <div class="container">
+            <div class="text-center">
+                <div class="sec-badge"><i class="fas fa-star"></i> What It Does</div>
+                <h2 class="sec-title">Everything You Need for<br>Vehicle Intelligence</h2>
+                <div class="divider mx-auto"></div>
+                <p class="sec-sub mx-auto">A complete pipeline — from raw image to verified registration details —
+                    powered by state-of-the-art AI.</p>
+            </div>
+            <div class="feat-grid">
+                <div class="feat-card">
+                    <div class="feat-icon fi-1"><i class="fas fa-truck"></i></div>
+                    <h4>Vehicle Type Classification</h4>
+                    <p>Our convolutional neural network (CNN) trained on thousands of vehicle images distinguishes
+                        trucks from non-trucks with high confidence. Useful for toll, logistics, and compliance checks.
+                    </p>
+                </div>
+                <div class="feat-card">
+                    <div class="feat-icon fi-2"><i class="fas fa-id-card"></i></div>
+                    <h4>Number Plate Detection</h4>
+                    <p>Using Haar Cascade for plate localisation combined with EasyOCR, the system reads number plates
+                        even in varying lighting and angles, then cleans and validates the extracted text.</p>
+                </div>
+                <div class="feat-card">
+                    <div class="feat-icon fi-3"><i class="fas fa-database"></i></div>
+                    <h4>Registration Database Lookup</h4>
+                    <p>Detected plate numbers are fuzzy-matched against a dataset of 1 million+ Telangana vehicle
+                        registrations, returning owner, maker, model, fuel type, engine CC, and validity date.</p>
+                </div>
+                <div class="feat-card">
+                    <div class="feat-icon fi-4"><i class="fas fa-shield-halved"></i></div>
+                    <h4>Instant Verification Result</h4>
+                    <p>Results are colour-coded green for verified matches and red for unregistered plates — giving
+                        security personnel an at-a-glance decision in real time.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ HOW IT WORKS ══ -->
+    <section class="sec-pad" id="how">
+        <div class="container">
+            <div class="text-center">
+                <div class="sec-badge"><i class="fas fa-list-ol"></i> Process</div>
+                <h2 class="sec-title">How It Works</h2>
+                <div class="divider mx-auto"></div>
+                <p class="sec-sub mx-auto">Four simple steps from photo to verified result — no technical knowledge
+                    required.</p>
+            </div>
+            <div class="steps-wrap">
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <h5>Upload Image</h5>
+                    <p>Drag & drop or select any photo of a vehicle from your device. Supports JPG, PNG, WEBP, and BMP
+                        formats up to 16 MB.</p>
+                </div>
+                <div class="step">
+                    <div class="step-num s2">2</div>
+                    <h5>AI Classifies</h5>
+                    <p>The CNN model analyses the image and classifies the vehicle as a truck or non-truck, displaying
+                        confidence percentage.</p>
+                </div>
+                <div class="step">
+                    <div class="step-num s3">3</div>
+                    <h5>OCR Reads Plate</h5>
+                    <p>Haar Cascade detects the number plate region, then EasyOCR extracts and cleans the alphanumeric
+                        characters.</p>
+                </div>
+                <div class="step">
+                    <div class="step-num s4">4</div>
+                    <h5>Database Verified</h5>
+                    <p>The plate is fuzzy-matched against Telangana's registration database and full vehicle details are
+                        returned instantly.</p>
+                </div>
+            </div>
+
+            <!-- accuracy banner -->
+            <div class="accuracy-banner">
+                <h2>Built for Real-World Accuracy</h2>
+                <p>Trained, tested, and tuned on Telangana vehicle data to minimise false positives.</p>
+                <div class="acc-nums">
+                    <div class="acc-item">
+                        <div class="big">90%+</div>
+                        <div class="lbl">Plate Match Threshold</div>
+                    </div>
+                    <div class="acc-item">
+                        <div class="big">1M+</div>
+                        <div class="lbl">Registration Records</div>
+                    </div>
+                    <div class="acc-item">
+                        <div class="big">16MB</div>
+                        <div class="lbl">Max Image Size</div>
+                    </div>
+                    <div class="acc-item">
+                        <div class="big">&lt;5s</div>
+                        <div class="lbl">Avg. Detection Time</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ TECH STACK ══ -->
+    <section class="sec-pad tech-bg" id="tech">
+        <div class="container">
+            <div class="text-center">
+                <div class="sec-badge"><i class="fas fa-microchip"></i> Technology</div>
+                <h2 class="sec-title">Powered By</h2>
+                <div class="divider mx-auto"></div>
+                <p class="sec-sub mx-auto" style="color:rgba(255,255,255,.55)">A modern AI stack combining computer
+                    vision, deep learning, and fuzzy search.</p>
+            </div>
+            <div class="tech-cards">
+                <div class="tech-card">
+                    <div class="t-icon">🧠</div>
+                    <h5>TensorFlow / Keras</h5>
+                    <p>CNN vehicle classification model trained on labelled image datasets</p>
+                </div>
+                <div class="tech-card">
+                    <div class="t-icon">👁️</div>
+                    <h5>OpenCV</h5>
+                    <p>Haar Cascade classifier for number plate region detection</p>
+                </div>
+                <div class="tech-card">
+                    <div class="t-icon">🔤</div>
+                    <h5>EasyOCR</h5>
+                    <p>Deep learning OCR to read plate characters accurately</p>
+                </div>
+                <div class="tech-card">
+                    <div class="t-icon">🔍</div>
+                    <h5>FuzzyWuzzy</h5>
+                    <p>Levenshtein distance matching for partial plate recognition</p>
+                </div>
+                <div class="tech-card">
+                    <div class="t-icon">🐍</div>
+                    <h5>Flask</h5>
+                    <p>Lightweight Python web framework serving the REST API</p>
+                </div>
+                <div class="tech-card">
+                    <div class="t-icon">🗃️</div>
+                    <h5>CSV Database</h5>
+                    <p>Telangana RTA registration dataset with 1M+ rows</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ UPLOAD TOOL ══ -->
+    <section class="sec-pad upload-sec" id="tool">
+        <div class="container">
+            <div class="text-center">
+                <div class="sec-badge"><i class="fas fa-flask"></i> Live Tool</div>
+                <h2 class="sec-title">Try It Now</h2>
+                <div class="divider mx-auto"></div>
+                <p class="sec-sub mx-auto">Upload a real vehicle image and see the AI work in real time.</p>
+            </div>
+
+            <div class="upload-wrap">
+                <div class="uw-head">
+                    <i class="fas fa-cloud-arrow-up" style="color:rgba(255,255,255,.85);font-size:1.1rem;"></i>
+                    <h3>Upload Vehicle Image</h3>
+                </div>
+                <div class="uw-body">
+
+                    <!-- drop zone -->
+                    <div class="drop-zone" id="dropZone">
+                        <input type="file" id="fileInput" accept="image/*">
+                        <div class="dz-icon"><i class="fas fa-image"></i></div>
+                        <h4>Drag &amp; drop your image here</h4>
+                        <p>or click anywhere in this box to browse files</p>
+                        <div class="fmt-tags">
+                            <span class="fmt">JPG</span><span class="fmt">PNG</span>
+                            <span class="fmt">WEBP</span><span class="fmt">BMP</span>
+                        </div>
+                    </div>
+                    <div class="file-name" id="fileNameEl"></div>
+
+                    <!-- preview -->
+                    <div class="preview-sec" id="previewSec">
+                        <div class="preview-wrap" id="previewWrap">
+                            <img id="previewImg" src="" alt="Vehicle Preview">
+                            <div class="scan-line"></div>
+                            <div class="corner tl"></div>
+                            <div class="corner tr"></div>
+                            <div class="corner bl"></div>
+                            <div class="corner br"></div>
+                        </div>
+                    </div>
+
+                    <button class="btn-upload" id="uploadBtn">
+                        <i class="fas fa-rocket me-2"></i> Analyse Image
+                    </button>
+
+                    <!-- action buttons -->
+                    <div class="action-grid" id="actionGrid">
+                        <button class="btn-act btn-cls" id="classifyBtn">
+                            <div class="act-icon"><i class="fas fa-truck"></i></div>
+                            Classify Vehicle Type
+                        </button>
+                        <button class="btn-act btn-plt" id="plateBtn">
+                            <div class="act-icon"><i class="fas fa-id-card"></i></div>
+                            Detect Plate &amp; Verify
+                        </button>
+                    </div>
+
+                    <!-- result -->
+                    <div id="result" class="mt-4"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <strong>VeriPlate AI</strong> — AI-Powered Vehicle Verification for Telangana, India<br>
+        <span style="margin-top:8px;display:block;">
+            Built with TensorFlow · OpenCV · EasyOCR · Flask &nbsp;|&nbsp;
+            <a href="#about">Back to top ↑</a>
+        </span>
+    </footer>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const dropZone = document.getElementById('dropZone');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const previewSec = document.getElementById('previewSec');
+        const previewImg = document.getElementById('previewImg');
+        const previewWrap = document.getElementById('previewWrap');
+        const actionGrid = document.getElementById('actionGrid');
+        const result = document.getElementById('result');
+        const fileNameEl = document.getElementById('fileNameEl');
+
+        /* ── Drag & Drop ── */
+        ['dragenter', 'dragover'].forEach(e => dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.classList.add('drag'); }));
+        ['dragleave', 'drop'].forEach(e => dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.classList.remove('drag'); }));
+        dropZone.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) { fileInput.files = e.dataTransfer.files; pick(f); } });
+        fileInput.addEventListener('change', () => { if (fileInput.files[0]) pick(fileInput.files[0]); });
+
+        function pick(f) {
+            fileNameEl.textContent = '📎 ' + f.name; fileNameEl.style.display = 'block';
+            const r = new FileReader();
+            r.onload = e => { previewImg.src = e.target.result; previewSec.style.display = 'block'; previewWrap.className = 'preview-wrap'; };
+            r.readAsDataURL(f);
+        }
+
+        /* ── Upload ── */
+        uploadBtn.addEventListener('click', () => {
+            if (!fileInput.files[0]) { toast('⚠️ Please select an image first!'); return; }
+            uploadBtn.innerHTML = '<span class="ring" style="width:20px;height:20px;border-width:3px;vertical-align:middle;margin-right:8px;"></span> Uploading…';
+            uploadBtn.disabled = true;
+            previewWrap.classList.add('scanning');
+            const fd = new FormData(); fd.append('file', fileInput.files[0]);
+            fetch('/upload_image', { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(d => {
+                    previewWrap.classList.remove('scanning');
+                    if (d.success) {
+                        previewImg.src = d.preview + '?t=' + Date.now();
+                        actionGrid.style.display = 'grid';
+                        uploadBtn.innerHTML = '<i class="fas fa-check me-2"></i> Uploaded – Choose an action below';
+                        result.innerHTML = `<div class="alert-m am-info"><i class="fas fa-circle-check fa-lg"></i> Image uploaded successfully. Choose an analysis mode above.</div>`;
+                        actionGrid.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    } else { resetBtn(); result.innerHTML = err(d.error || 'Upload failed.'); }
+                }).catch(() => { resetBtn(); result.innerHTML = err('Network error. Is the server running?'); });
+        });
+
+        function resetBtn() { uploadBtn.innerHTML = '<i class="fas fa-rocket me-2"></i> Analyse Image'; uploadBtn.disabled = false; }
+
+        /* ── Classify ── */
+        document.getElementById('classifyBtn').addEventListener('click', () => {
+            busy('classifyBtn'); result.innerHTML = loading('🔍 Analysing vehicle type with deep learning…');
+            fetch('/classify_vehicle', { method: 'POST' }).then(r => r.json()).then(d => {
+                idle('classifyBtn');
+                if (d.error) { result.innerHTML = err(d.error); return; }
+                const truck = d.result === 'TRUCK';
+                const conf = parseFloat(d.confidence);
+                result.innerHTML = `
+    <div class="card r-card border-0 shadow-sm">
+      <div class="r-head" style="background:linear-gradient(135deg,${truck ? '#4f46e5,#818cf8' : '#0891b2,#22d3ee'})">
+        <i class="fas fa-truck" style="color:rgba(255,255,255,.85)"></i>
+        <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:#fff">Classification Result</span>
+      </div>
+      <div class="p-4 text-center">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:2.8rem;font-weight:800;color:${truck ? 'var(--p)' : 'var(--ac)'}">
+          ${truck ? '🚛' : '🚗'} ${d.result}
+        </div>
+        <div style="max-width:300px;margin:16px auto 0">
+          <div style="display:flex;justify-content:space-between;font-size:.82rem;font-weight:600;color:var(--txm)">
+            <span>Confidence</span><span>${d.confidence}</span>
+          </div>
+          <div class="conf-track"><div class="conf-fill" id="cbar" style="width:0%"></div></div>
+        </div>
+        <div class="mt-3">
+          <span class="spill ${truck ? 'sp-ok' : 'sp-wn'}">
+            <i class="fas fa-${truck ? 'check-circle' : 'info-circle'}"></i>
+            ${truck ? 'Heavy Vehicle Detected' : 'Non-Truck / Light Vehicle'}
+          </span>
+        </div>
+      </div>
+    </div>`;
+                setTimeout(() => { const b = document.getElementById('cbar'); if (b) b.style.width = d.confidence; }, 80);
+            });
+        });
+
+        /* ── Plate ── */
+        document.getElementById('plateBtn').addEventListener('click', () => {
+            busy('plateBtn'); previewWrap.className = 'preview-wrap scanning';
+            result.innerHTML = loading('🔎 Scanning number plate with OCR…');
+            fetch('/detect_plate', { method: 'POST' }).then(r => r.json()).then(d => {
+                idle('plateBtn'); previewWrap.classList.remove('scanning');
+                if (d.error) { result.innerHTML = err(d.error); return; }
+                if (!d.plate) {
+                    previewWrap.classList.add('fail');
+                    result.innerHTML = `
+      <div class="card r-card border-0 shadow-sm">
+        <div class="r-head" style="background:linear-gradient(135deg,#dc2626,#f87171)">
+          <i class="fas fa-id-card" style="color:rgba(255,255,255,.85)"></i>
+          <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:#fff">Plate Detection</span>
+        </div>
+        <div class="p-4"><div class="alert-m am-er"><i class="fas fa-triangle-exclamation fa-lg"></i>
+          <div><strong>No license plate detected.</strong><br>
+          <span style="font-size:.85rem">Ensure the image shows a clear front/rear view with a visible plate.</span></div>
+        </div></div></div>`; return;
+                }
+                const ok = d.details != null;
+                previewWrap.classList.add(ok ? 'ok' : 'fail');
+                let det = '';
+                if (ok) {
+                    const dx = d.details;
+                    const rows = [['Registration No', dx['Registration No']], ['Maker', dx['Maker']], ['Model', dx['Model']],
+                    ['Fuel Type', dx['Fuel']], ['Engine CC', dx['CC']], ['Seating Capacity', dx['Seating']], ['Valid Until', dx['Valid Till']]];
+                    det = `<div class="mt-4"><p style="font-weight:700;font-size:.85rem;color:var(--txm);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Vehicle Information</p>
+        <table class="info-tbl">${rows.map(([k, v]) => `<tr><td>${k}</td><td>${v ?? '—'}</td></tr>`).join('')}</table></div>`;
+                }
+                result.innerHTML = `
+    <div class="card r-card border-0 shadow-sm">
+      <div class="r-head" style="background:linear-gradient(135deg,${ok ? '#059669,#10b981' : '#dc2626,#f87171'})">
+        <i class="fas fa-id-card" style="color:rgba(255,255,255,.85)"></i>
+        <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:#fff">Plate Detection Result</span>
+      </div>
+      <div class="p-4 text-center">
+        <div class="plate-disp ${ok ? 'pd-ok' : 'pd-er'}">${d.plate}</div>
+        <div class="mt-2"><span class="spill ${ok ? 'sp-ok' : 'sp-er'}">
+          <i class="fas fa-${ok ? 'check-circle' : 'times-circle'}"></i> ${d.message}
+        </span></div>
+        ${det}
+      </div>
+    </div>`;
+            });
+        });
+
+        /* ── Helpers ── */
+        function loading(msg) { return `<div class="text-center py-4"><div class="ring"></div><p class="mt-3" style="color:var(--p);font-weight:600">${msg}</p></div>`; }
+        function err(msg) { return `<div class="alert-m am-er"><i class="fas fa-circle-xmark fa-lg"></i> ${msg}</div>`; }
+        function busy(id) { const b = document.getElementById(id); b.disabled = true; b.style.opacity = '.65'; }
+        function idle(id) { const b = document.getElementById(id); b.disabled = false; b.style.opacity = '1'; }
+        function toast(msg) {
+            const t = document.createElement('div'); t.className = 'toast-fix'; t.textContent = msg;
+            document.body.appendChild(t); setTimeout(() => t.remove(), 3000);
+        }
+
+        /* ── DB counter ── */
+        function animCount(el, to, suf) {
+            let v = 0; const s = to / 60;
+            const ti = setInterval(() => { v = Math.min(v + s, to); el.textContent = Math.floor(v).toLocaleString() + suf; if (v >= to) clearInterval(ti); }, 18);
+        }
+        fetch('/api/stats').then(r => r.json()).then(d => animCount(document.getElementById('dbCount'), d.records, '+'))
+            .catch(() => animCount(document.getElementById('dbCount'), 500000, '+'));
+    </script>
+</body>
+
+</html>

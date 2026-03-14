@@ -1,0 +1,9 @@
+Flask==2.3.3
+Werkzeug==2.3.7
+gunicorn==21.2.0
+tensorflow==2.15.0
+opencv-python-headless==4.9.0.80
+easyocr==1.7.1
+fuzzywuzzy==0.18.0
+python-Levenshtein==0.25.1
+numpy==1.24.3

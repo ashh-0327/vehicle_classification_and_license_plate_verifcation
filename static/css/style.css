@@ -1,0 +1,57 @@
+:root {
+    --primary: #667eea;
+    --secondary: #764ba2;
+    --success: #28a745;
+    --danger: #dc3545;
+    --warning: #ffc107;
+}
+
+body {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.drop-zone {
+    border: 3px dashed var(--primary);
+    border-radius: 20px;
+    padding: 60px 20px;
+    transition: all 0.3s ease;
+    background: white;
+    cursor: pointer;
+}
+
+.drop-zone:hover, .drop-zone.dragover {
+    background: #f0f4ff;
+    border-color: var(--secondary);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+}
+
+.card {
+    border-radius: 20px !important;
+    overflow: hidden;
+}
+
+.result-card {
+    border-left: 6px solid;
+    animation: slideIn 0.6s ease-out;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.status-truck { border-left-color: var(--success); }
+.status-notruck { border-left-color: var(--danger); }
+.status-found { border-left-color: var(--success); }
+.status-notfound { border-left-color: var(--warning); }
+
+.preview-img {
+    transition: transform 0.3s ease;
+}
+
+.preview-img:hover {
+    transform: scale(1.05);
+}

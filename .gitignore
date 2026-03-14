@@ -1,0 +1,19 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.env
+uploads/*
+!uploads/.gitkeep
+outputs/*
+plates/*
+test_folder/*
+dataset_vehicle/*
+*.log
+.DS_Store
+Thumbs.db
+
+# Large model & data files — deploy separately or via cloud storage
+*.h5
+*.csv
+*.xml
