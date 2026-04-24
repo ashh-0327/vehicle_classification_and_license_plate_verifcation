@@ -1,6 +1,5 @@
 ---
 title: VehicleDetector AI
-emoji: 🚗
 colorFrom: blue
 colorTo: indigo
 sdk: docker
